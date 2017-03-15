@@ -7,7 +7,7 @@ To run this:
 	3. Double-click the executable file (or run it in terminal, no parameters needed) and follow the instructions.
 
 Enjoy!
-- Tom D
+- Tom
 
 www.thomas-donovan.com 
 
