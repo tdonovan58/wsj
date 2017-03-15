@@ -1,33 +1,109 @@
 #!/bin/bash
 
-#export yesterdayDate="`date -v-1d +%Y%m%d`"
-export curDate="`date +%Y%m%d`"
-export urlPrefix="http://online.wsj.com/public/resources/documents/print/WSJ_-"
-export exportDir=/Users/${USER}/Desktop/WSJ/${curDate}
+# This downloads the entire Wall Street Journal into a datestamped folder full of PDFs (one for each page).
 
+# basic dates for use later
+export yesterdayDate="`date -v-1d +%Y%m%d`"
+export curDate="`date +%Y%m%d`"
+
+# get user input on what day's paper they want
+echo "What day's paper would you like to download?" 
+read -p "    Type 'today', 'yesterday', or give a date in format YYYYMMDD: " userInput
+
+# assign the dateToDownload variable properly.
+if [ ${userInput} == "today" ]; then
+	export dateToDownload="${curDate}"
+elif [ ${userInput} == "yesterday" ]; then
+	export dateToDownload=${yesterdayDate}
+else export dateToDownload=${userInput} # need to validate this input, but do that later... 
+fi 
+
+#export dayOfWeek="`date +%A`"
+export dayOfWeek="`date -j -f "%Y%m%d" "${dateToDownload}" "+%A"`"
+
+# set directories & log file name
+export wsjDir="/Users/${USER}/Desktop/WSJ"
+export exportDir=${wsjDir}/${dateToDownload}
+export logDir=${wsjDir}/downloadLogs/${dateToDownload}
+export logFile="${logDir}/downloadLog_${dateToDownload}.txt"
+
+# set URL Prefix
+export urlPrefix="http://online.wsj.com/public/resources/documents/print/WSJ_-"
+
+# make today's exportDirectory & change to it. Also create todays log directory
 mkdir -p ${exportDir}
 cd ${exportDir}
+mkdir -p ${logDir}
 
-echo ""
-echo "-----changed dir to: `pwd` ---------"
+# create the log file
+touch ${logFile}
 
+# log the date and time this program is run (mainly useful if date chosen is NOT the current date)
+echo -e "========================== The current datetime is `date` ==================" | tee -a ${logFile}
+echo "userInput was: ${userInput}" | tee -a ${logFile}
+echo "STARTING DOWNLOAD FOR THE ${dateToDownload} VERSION OF THE WSJ." | tee -a ${logFile}
 
-echo "Downloading The Wall Street Journal for: `date +%A\ %B\ %d,\ %Y`"
+# show the new working dir
+echo -e "\n -----changed dir to: `pwd` ---------" | tee -a ${logFile}
 
-for pageLetter in A B C D M; do
+# show the date 
+echo -e "\n Downloading The Wall Street Journal for: `date -j -f "%Y%m%d" "${dateToDownload}" +%A\ %B\ %d,\ %Y`" | tee -a ${logFile}
+
+# Most days, these are the only sections to download. See explanation below.
+export sectionsToDownload="A B"
+
+# The WSJ has 2 sections (A & B) Monday - Friday. On Saturdays, it has Sections C & D as well.
+# Occosionally on Fridays, there is a Section M for "Mansion", though it's unclear if this was phased out in Nov 2016 or not...
+if [ ${dayOfWeek} == "Sunday" ]; then
+	echo -e "\n The requested date is a Sunday. There's no WSJ on this date! \n   Exiting now.... " | tee -a ${logFile}
+	exit 0
+elif [ ${dayOfWeek} == "Friday" ]; then
+	echo -e "\n The requested date is a Friday, so also searching for Section M..." | tee -a ${logFile}
+	export sectionsToDownload="A B M"
+elif [ ${dayOfWeek} == "Saturday" ]; then
+	echo -e "\n The requested date is a Saturday, so also searching for Sections C & D..." | tee -a ${logFile}
+	export sectionsToDownload="A B C D"
+else echo -e "\n Since the requested date is a ${dayOfWeek}, there are no special sections. Only searching for Sections A & B..." | tee -a ${logFile}
+fi 
+
+# The highest page number in any given section is 20. 
+#	Most days, Section A is either 18 or 20 pages, and B is only 12 pages. 
+#	This cycles through all possible pages (1 - 20) just to be safe.
+#	Any page that does not exist is still downloaded as a mini 11kb-ish file, but is deleted at the end of the script anyway.
+#
+# The below is a simple nested for loop to iterate through each of the possible sections, and each of the 20 pages for those sections
+for pageLetter in ${sectionsToDownload}; do
 	for pageNum in {1..9}; do 
-		echo "   getting ${pageLetter} ${pageNum}"
-		curl -O ${urlPrefix}${pageLetter}00${pageNum}-${curDate}.pdf
+		downloadUrl="${urlPrefix}${pageLetter}00${pageNum}-${dateToDownload}.pdf"
+		echo -e "\n    ======== getting ${pageLetter} ${pageNum} ======== \nfrom: ${downloadUrl}" | tee -a ${logFile}
+		curl -O -# ${downloadUrl} | tee -a ${logFile}
 	done
+	# one more for loop needed for pages 10 - 20 (aka page numbers with 2 digits) since WSJ prefixes these as 001, or 010, or 020, etc.
 	for pageNum in {10..20}; do 
-		echo "   getting ${pageLetter} ${pageNum}"
-		curl -O ${urlPrefix}${pageLetter}0${pageNum}-${curDate}.pdf
+		downloadUrl="${urlPrefix}${pageLetter}0${pageNum}-${dateToDownload}.pdf"
+		echo -e "\n    ======== getting ${pageLetter} ${pageNum} ======== \nfrom: ${downloadUrl}" | tee -a ${logFile}
+		curl -O -# ${downloadUrl} | tee -a ${logFile}
 	done
 done
 
+# delete all files smaller than 20k (aka pages that did not exist, which are typically 11kb to 12kb)
+export numFilesToDelete=`find . -name "*${dateToDownload}.pdf" -size -20k | wc -l`
+export numFilesToKeep=`find . -name "*${dateToDownload}.pdf" -size +20k | wc -l`
 
+# show the user how many files are going to be kept and deleted. 
+echo -e "\n    numFilesToDelete = ${numFilesToDelete}" | tee -a ${logFile}
+echo "    numFilesToKeep = ${numFilesToKeep}" | tee -a ${logFile}
 
+# give user a few seconds to read the logs... 
+echo -e "\n sleeping 2 seconds ...." | tee -a ${logFile}
+sleep 2
 
+echo " done sleeping..." | tee -a ${logFile}
+echo -e "\n   removing ${numFilesToDelete} files for pages that weren't in this day's paper..." | tee -a ${logFile}
 
+find . -name "WSJ_-*${dateToDownload}.pdf" -size -20k -delete
 
+# stop reading comments, go read the paper!
+echo -e "\n ... all done! Enjoy today's Wall Street Journal! Opening all of the pages in your default PDF viewer now...\n" | tee -a ${logFile}
 
+open ${exportDir}/WSJ*.pdf
