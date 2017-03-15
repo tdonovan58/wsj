@@ -1,0 +1,33 @@
+#!/bin/bash
+
+#export yesterdayDate="`date -v-1d +%Y%m%d`"
+export curDate="`date +%Y%m%d`"
+export urlPrefix="http://online.wsj.com/public/resources/documents/print/WSJ_-"
+export exportDir=/Users/${USER}/Desktop/WSJ/${curDate}
+
+mkdir -p ${exportDir}
+cd ${exportDir}
+
+echo ""
+echo "-----changed dir to: `pwd` ---------"
+
+
+echo "Downloading The Wall Street Journal for: `date +%A\ %B\ %d,\ %Y`"
+
+for pageLetter in A B C D M; do
+	for pageNum in {1..9}; do 
+		echo "   getting ${pageLetter} ${pageNum}"
+		curl -O ${urlPrefix}${pageLetter}00${pageNum}-${curDate}.pdf
+	done
+	for pageNum in {10..20}; do 
+		echo "   getting ${pageLetter} ${pageNum}"
+		curl -O ${urlPrefix}${pageLetter}0${pageNum}-${curDate}.pdf
+	done
+done
+
+
+
+
+
+
+
