@@ -2,6 +2,12 @@
 
 # This downloads the entire Wall Street Journal into a datestamped folder full of PDFs (one for each page).
 
+# TODO: 
+# 	1. satisfy all the TODO headers below
+#	2. group sections into multiple appropriate functions
+#	3. just learned that prior to mid-November 2016, there WAS a Section C & D on most weekdays (11/09/16 for example). Fix this
+#	4. port this whole thing to python / java so that it's platform independent. (This was built on Mac and not tested on any other *nix OSes yet - very likely issues exist on other env's)
+
 # basic dates for use later
 export yesterdayDate="`date -v-1d +%Y%m%d`"
 export curDate="`date +%Y%m%d`"
@@ -87,6 +93,9 @@ for pageLetter in ${sectionsToDownload}; do
 done
 
 # delete all files smaller than 20k (aka pages that did not exist, which are typically 11kb to 12kb)
+# TODO:  there's obviously better ways to do this, such as using $ curl -I to check the header for:
+#	HTTP Response Code (aka only allow HTTP 200 OK) --> which can be done by this command: $ if [ "`curl -I -# ${goodUrl} | grep "404 Not Found" | wc -l | xargs`" == "1" ]; then echo "this paper does exist"; else echo "this paper does not exist"; fi
+#	OR check the content-type in the header to ensure it mentions "pdf", not "html". Similar command to above with different grep string
 export numFilesToDelete=`find . -name "*${dateToDownload}.pdf" -size -20k | wc -l`
 export numFilesToKeep=`find . -name "*${dateToDownload}.pdf" -size +20k | wc -l`
 
@@ -101,9 +110,12 @@ sleep 2
 echo " done sleeping..." | tee -a ${logFile}
 echo -e "\n   removing ${numFilesToDelete} files for pages that weren't in this day's paper..." | tee -a ${logFile}
 
+# find all the files under the arbitrarily-chosen size threshold and delete them
 find . -name "WSJ_-*${dateToDownload}.pdf" -size -20k -delete
 
 # stop reading comments, go read the paper!
 echo -e "\n ... all done! Enjoy today's Wall Street Journal! Opening all of the pages in your default PDF viewer now...\n" | tee -a ${logFile}
 
+# auto-opens all of the PDFs which were not deleted. 
+# todo: MAKE THIS A FLAG / INPUT CHOSEN BY THE USER AT RUNTIME
 open ${exportDir}/WSJ*.pdf
