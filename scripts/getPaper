@@ -6,22 +6,30 @@
 # 	1. satisfy all the TODO headers below
 #	2. group sections into multiple appropriate functions
 #	3. just learned that prior to mid-November 2016, there WAS a Section C & D on most weekdays (11/09/16 for example). Fix this
-#	4. port this whole thing to python / java so that it's platform independent. (This was built on Mac and not tested on any other *nix OSes yet - very likely issues exist on other env's)
+#	4. port this whole thing to python / java so that it's platform independent. 
+#	   (This was built on Mac and not tested on any other *nix OSes yet - very likely issues exist on other env's)
 
 # basic dates for use later
 export yesterdayDate="`date -v-1d +%Y%m%d`"
 export curDate="`date +%Y%m%d`"
 
+# delay initial prompt to make it easier for users to read
+sleep 1
+
 # get user input on what day's paper they want
-echo "What day's paper would you like to download?" 
-read -p "    Type 'today', 'yesterday', or give a date in format YYYYMMDD: " userInput
+echo -e "\n What day's paper would you like to download?" 
+read -p "    Type 'today', 'yesterday', or give a date in format YYYYMMDD: " userRequestedDateInput
+
+# ask user if they want the paper to automatically open as one large combined PDF once all pages are done downloading...
+echo -e "\n Do you want to auto-open the entire paper as one PDF immediately after download has completed?"
+read -p "	 Type 'yes' or 'no': " userAutoOpenPdfInput
 
 # assign the dateToDownload variable properly.
-if [ ${userInput} == "today" ]; then
+if [ ${userRequestedDateInput} == "today" ]; then
 	export dateToDownload="${curDate}"
-elif [ ${userInput} == "yesterday" ]; then
+elif [ ${userRequestedDateInput} == "yesterday" ]; then
 	export dateToDownload=${yesterdayDate}
-else export dateToDownload=${userInput} # need to validate this input, but do that later... 
+else export dateToDownload=${userRequestedDateInput} # need to validate this input, but do that later... 
 fi 
 
 #export dayOfWeek="`date +%A`"
@@ -30,6 +38,7 @@ export dayOfWeek="`date -j -f "%Y%m%d" "${dateToDownload}" "+%A"`"
 # set directories & log file name
 export wsjDir="/Users/${USER}/Desktop/WSJ"
 export exportDir=${wsjDir}/${dateToDownload}
+export combinedPdfFileName=${exportDir}/${dateToDownload}-WSJ-full.pdf
 export logDir=${wsjDir}/downloadLogs/${dateToDownload}
 export logFile="${logDir}/downloadLog_${dateToDownload}.txt"
 
@@ -46,7 +55,8 @@ touch ${logFile}
 
 # log the date and time this program is run (mainly useful if date chosen is NOT the current date)
 echo -e "========================== The current datetime is `date` ==================" | tee -a ${logFile}
-echo "userInput was: ${userInput}" | tee -a ${logFile}
+echo "userRequestedDateInput was: ${userRequestedDateInput}" | tee -a ${logFile}
+echo "userAutoOpenPdfInput was: ${userAutoOpenPdfInput}" | tee -a ${logFile}
 echo "STARTING DOWNLOAD FOR THE ${dateToDownload} VERSION OF THE WSJ." | tee -a ${logFile}
 
 # show the new working dir
@@ -73,8 +83,8 @@ else echo -e "\n Since the requested date is a ${dayOfWeek}, there are no specia
 fi 
 
 # The highest page number in any given section is 20. 
-#	Most days, Section A is either 18 or 20 pages, and B is only 12 pages. 
-#	This cycles through all possible pages (1 - 20) just to be safe.
+#	Most days, Section A is either 18 or 20 pages, (sometimes 24 pages) and B is only 12-18 pages. 
+#	This cycles through all possible pages (1 - 24) just to be safe.
 #	Any page that does not exist is still downloaded as a mini 11kb-ish file, but is deleted at the end of the script anyway.
 #
 # The below is a simple nested for loop to iterate through each of the possible sections, and each of the 20 pages for those sections
@@ -84,8 +94,8 @@ for pageLetter in ${sectionsToDownload}; do
 		echo -e "\n    ======== getting ${pageLetter} ${pageNum} ======== \nfrom: ${downloadUrl}" | tee -a ${logFile}
 		curl -O -# ${downloadUrl} | tee -a ${logFile}
 	done
-	# one more for loop needed for pages 10 - 20 (aka page numbers with 2 digits) since WSJ prefixes these as 001, or 010, or 020, etc.
-	for pageNum in {10..20}; do 
+	# one more for loop needed for pages 10 - 24 (aka page numbers with 2 digits) since WSJ prefixes these as 001, or 010, or 020, etc.
+	for pageNum in {10..24}; do 
 		downloadUrl="${urlPrefix}${pageLetter}0${pageNum}-${dateToDownload}.pdf"
 		echo -e "\n    ======== getting ${pageLetter} ${pageNum} ======== \nfrom: ${downloadUrl}" | tee -a ${logFile}
 		curl -O -# ${downloadUrl} | tee -a ${logFile}
@@ -113,9 +123,26 @@ echo -e "\n   removing ${numFilesToDelete} files for pages that weren't in this 
 # find all the files under the arbitrarily-chosen size threshold and delete them
 find . -name "WSJ_-*${dateToDownload}.pdf" -size -20k -delete
 
-# stop reading comments, go read the paper!
-echo -e "\n ... all done! Enjoy today's Wall Street Journal! Opening all of the pages in your default PDF viewer now...\n" | tee -a ${logFile}
+# nifty built in script to Mac OSX which combines multiple PDFs into one long pdf.
+# Important to run this since anyone who has a deafult PDF viewer other than Mac's built in Preview (aka Adobe Acrobat) 
+# 	will likely experience a crash from trying to open 30-50 separate PDFs. Preview handles this better than Acrobat. 
+#	Combining all pages into one PDF is a safeguard that will lower the chance of a non-Preview PDF viewer crashing. 
+echo -e "\n Running Automator's 'Combine PDF Pages.action' script to combine all PDF pages into one file." | tee -a ${logFile}
+/System/Library/Automator/Combine\ PDF\ Pages.action/Contents/Resources/join.py -o ${combinedPdfFileName} ${exportDir}/WSJ*.pdf
 
-# auto-opens all of the PDFs which were not deleted. 
-# todo: MAKE THIS A FLAG / INPUT CHOSEN BY THE USER AT RUNTIME
-open ${exportDir}/WSJ*.pdf
+echo -e "\n Removing individual pages now that all have been combined into single file..."
+rm -v ${exportDir}/WSJ*${dateToDownload}*.pdf | tee -a ${logFile}
+
+if [ ${userAutoOpenPdfInput} == "yes" ]; then
+	echo -e "\n Auto-opening the entire paper as one combined PDF for you now... " | tee -a ${logFile}
+	# auto-opens all of the PDFs which were not deleted. 
+	# todo: MAKE THIS A FLAG / INPUT CHOSEN BY THE USER AT RUNTIME
+	open ${combinedPdfFileName}
+else 
+	echo -e "Not auto-opening the paper for you, but you can access it via finder here: ${combinedPdfFileName}"
+	# opens a Finder window in the exportDir folder
+	open .
+fi 
+
+# stop reading comments, go read the paper!
+echo -e "\n ... all done! Enjoy today's Wall Street Journal!" | tee -a ${logFile}
