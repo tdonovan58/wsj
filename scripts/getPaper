@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# This downloads the entire Wall Street Journal into a datestamped folder full of PDFs (one for each page).
+# This downloads the entire Wall Street Journal into a datestamped folder full of individual PDFs each representing one page of the given day's paper. Once all possible pages have been downloaded, the program combines all of these PDFs into a single large PDF of the entire paper (typically 14MB - 20MB), then deletes all of the individual PDF files to save space. 
 
 # TODO: 
 # 	1. satisfy all the TODO headers below
@@ -82,7 +82,7 @@ elif [ ${dayOfWeek} == "Saturday" ]; then
 else echo -e "\n Since the requested date is a ${dayOfWeek}, there are no special sections. Only searching for Sections A & B..." | tee -a ${logFile}
 fi 
 
-# The highest page number in any given section is 20. 
+# The highest page number in any given section (that I've seen to date) is 24. Most days, no section goes above 20.  
 #	Most days, Section A is either 18 or 20 pages, (sometimes 24 pages) and B is only 12-18 pages. 
 #	This cycles through all possible pages (1 - 24) just to be safe.
 #	Any page that does not exist is still downloaded as a mini 11kb-ish file, but is deleted at the end of the script anyway.
