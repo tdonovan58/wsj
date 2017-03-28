@@ -81,7 +81,7 @@ elif [ ${dayOfWeek} == "Saturday" ]; then
 	echo -e "\n The requested date is a Saturday, so also searching for Sections C & D..." | tee -a ${logFile}
 	export sectionsToDownload="A B C D"
 elif [ ${dayOfWeek} == "Monday" ]; then
-	echo -e "\n The requested date is a Monday, so also searching for Secton R..." | tee -a ${logFile}
+	echo -e "\n The requested date is a Monday, so also searching for Section R..." | tee -a ${logFile}
 	export sectionsToDownload="A B R"
 else echo -e "\n Since the requested date is a ${dayOfWeek}, there are no special sections. Only searching for Sections A & B..." | tee -a ${logFile}
 fi 
