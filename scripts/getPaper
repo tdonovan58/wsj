@@ -69,6 +69,7 @@ echo -e "\n Downloading The Wall Street Journal for: `date -j -f "%Y%m%d" "${dat
 export sectionsToDownload="A B"
 
 # The WSJ has 2 sections (A & B) Monday - Friday. On Saturdays, it has Sections C & D as well.
+# Occosionally on Mondays, there is a Section R for "Wealth Management", and it typically only has 12 pages. 
 # Occosionally on Fridays, there is a Section M for "Mansion", though it's unclear if this was phased out in Nov 2016 or not...
 if [ ${dayOfWeek} == "Sunday" ]; then
 	echo -e "\n The requested date is a Sunday. There's no WSJ on this date! \n   Exiting now.... " | tee -a ${logFile}
@@ -79,6 +80,9 @@ elif [ ${dayOfWeek} == "Friday" ]; then
 elif [ ${dayOfWeek} == "Saturday" ]; then
 	echo -e "\n The requested date is a Saturday, so also searching for Sections C & D..." | tee -a ${logFile}
 	export sectionsToDownload="A B C D"
+elif [ ${dayOfWeek} == "Monday" ]; then
+	echo -e "\n The requested date is a Monday, so also searching for Secton R..." | tee -a ${logFile}
+	export sectionsToDownload="A B R"
 else echo -e "\n Since the requested date is a ${dayOfWeek}, there are no special sections. Only searching for Sections A & B..." | tee -a ${logFile}
 fi 
 
