@@ -1,6 +1,9 @@
 #!/bin/bash
 
-# This downloads the entire Wall Street Journal into a datestamped folder full of individual PDFs each representing one page of the given day's paper. Once all possible pages have been downloaded, the program combines all of these PDFs into a single large PDF of the entire paper (typically 14MB - 20MB), then deletes all of the individual PDF files to save space. 
+# This downloads the entire Wall Street Journal into a datestamped folder full of individual PDFs each representing one
+#   page of the given day's paper. Once all possible pages have been downloaded, the program combines all of these PDFs
+#   into a single large PDF of the entire paper (typically 14MB - 20MB), then deletes all of the individual PDF files
+#   to save space.
 
 # TODO: 
 # 	1. satisfy all the TODO headers below
@@ -70,7 +73,7 @@ export sectionsToDownload="A B"
 
 # The WSJ has 2 sections (A & B) Monday - Friday. On Saturdays, it has Sections C & D as well.
 # Occosionally on Mondays, there is a Section R for "Wealth Management", and it typically only has 12 pages. 
-# Occosionally on Fridays, there is a Section M for "Mansion", though it's unclear if this was phased out in Nov 2016 or not...
+# Occosionally on Fridays, there is a Section M for "Mansion"
 if [ ${dayOfWeek} == "Sunday" ]; then
 	echo -e "\n The requested date is a Sunday. There's no WSJ on this date! \n   Exiting now.... " | tee -a ${logFile}
 	exit 0
@@ -139,8 +142,7 @@ rm -v ${exportDir}/WSJ*${dateToDownload}*.pdf | tee -a ${logFile}
 
 if [ ${userAutoOpenPdfInput} == "yes" ]; then
 	echo -e "\n Auto-opening the entire paper as one combined PDF for you now... " | tee -a ${logFile}
-	# auto-opens all of the PDFs which were not deleted. 
-	# todo: MAKE THIS A FLAG / INPUT CHOSEN BY THE USER AT RUNTIME
+	# auto-opens the single, combined PDF. 
 	open ${combinedPdfFileName}
 else 
 	echo -e "Not auto-opening the paper for you, but you can access it via finder here: ${combinedPdfFileName}"
@@ -150,3 +152,9 @@ fi
 
 # stop reading comments, go read the paper!
 echo -e "\n ... all done! Enjoy today's Wall Street Journal!" | tee -a ${logFile}
+echo -e "\n ... And if you've REALLY enjoyed this tool, feel free to contribute to my crypto tip-jar :)" | tee -a ${logFile}
+echo -e "\n#########################################\nBTC: 1CVEAghHnW9dnNPjhzriSchieQyu4qjX2E" | tee -a ${logFile}
+echo -e "\nETH: 0xff7EF3e902b9cC66d886E510f52f64ACDD29e86b" | tee -a ${logFile}
+echo -e "\nLTC: LZNqM6VK8H1CcuhPCK11Mn7YtmPj9GUyBH" | tee -a ${logFile}
+echo -e "\nLTC: rfrZCjvzsYMnoSiJ1sAjnwDrRbHxj3NdmV" | tee -a ${logFile}
+echo -e "#########################################" | tee -a ${logFile}

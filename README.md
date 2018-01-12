@@ -1,4 +1,5 @@
 # wsj
+
 Simple Bash script to download the Wall Street Journal for free (Mac Only). I built this as a gift for my Dad after he alerted me one can read the WSJ every day for free by just editing the URL with the exact date (YYYYMMDD format), section (A, B, C, D, or M), and page number (001 - 020) that you want to view. 
 
 
@@ -22,10 +23,27 @@ To run this:
 
 	3. Double-click the executable file (or run it in terminal, no parameters needed) and follow the instructions.
 
+
+<b>If you like what you've seen here, please consider thanking me for my efforts via the below crypto tip-jars :) </b>
+
+<b>BTC</b>: 1CVEAghHnW9dnNPjhzriSchieQyu4qjX2E
+
+<b>ETH</b>: 0xff7EF3e902b9cC66d886E510f52f64ACDD29e86b
+
+<b>LTC</b>: LZNqM6VK8H1CcuhPCK11Mn7YtmPj9GUyBH
+
+<b>XRP</b>: rfrZCjvzsYMnoSiJ1sAjnwDrRbHxj3NdmV
+
+Thank you!!!
+
 Enjoy!
 - Tom
 
 www.tomd.tech 
 
 
+# This repo's Contributor Code of Conduct
 
+See [CODE_OF_CONDUCT.md](https://github.com/tdonovan58/wsj/blob/master/code-of-conduct/CODE_OF_CONDUCT.md).
+
+See the [contributing guidelines](https://github.com/tdonovan58/wsj/blob/master/CONTRIBUTING.md) for more information on properly contributing to this project!
