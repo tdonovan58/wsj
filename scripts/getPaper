@@ -113,7 +113,8 @@ find . -name "WSJ_-*${dateToDownload}.pdf" -size -20k -delete
 # 	will likely experience a crash from trying to open 30-50 separate PDFs. Preview handles this better than Acrobat. 
 #	Combining all pages into one PDF is a safeguard that will lower the chance of a non-Preview PDF viewer crashing. 
 echo -e "\n Running Automator's 'Combine PDF Pages.action' script to combine all PDF pages into one file." | tee -a ${logFile}
-/System/Library/Automator/Combine\ PDF\ Pages.action/Contents/Resources/join.py -o ${combinedPdfFileName} ${exportDir}/WSJ*.pdf
+# TODO: Implement linux PDF combiner with either poppler-utils or something else
+#/System/Library/Automator/Combine\ PDF\ Pages.action/Contents/Resources/join.py -o ${combinedPdfFileName} ${exportDir}/WSJ*.pdf
 
 echo -e "\n Removing individual pages now that all have been combined into single file..."
 rm -v ${exportDir}/WSJ*${dateToDownload}*.pdf | tee -a ${logFile}
