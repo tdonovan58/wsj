@@ -25,7 +25,7 @@ export dayOfWeek="`date -j -f "%Y%m%d" "${dateToDownload}" "+%A"`"
 export wsjDir="/opt/wsj"
 export exportDir=${wsjDir}/${dateToDownload}
 export combinedPdfFileName=${exportDir}/${dateToDownload}-WSJ-full.pdf
-export logDir="/var/wsj/${dateToDownload}"
+export logDir="/var/log/wsj/${dateToDownload}"
 export logFile="${logDir}/downloadLog_${dateToDownload}.txt"
 
 # set URL Prefix
@@ -117,8 +117,6 @@ echo -e "\n Running Automator's 'Combine PDF Pages.action' script to combine all
 
 echo -e "\n Removing individual pages now that all have been combined into single file..."
 rm -v ${exportDir}/WSJ*${dateToDownload}*.pdf | tee -a ${logFile}
-
-echo -e "Not auto-opening the paper for you, but you can access it via finder here: ${combinedPdfFileName}"
 
 # stop reading comments, go read the paper!
 echo -e "\n ... all done! Enjoy today's Wall Street Journal!" | tee -a ${logFile}
