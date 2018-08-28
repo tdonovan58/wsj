@@ -13,36 +13,19 @@
 #	   (This was built on Mac and not tested on any other *nix OSes yet - very likely issues exist on other env's)
 
 # basic dates for use later
-export yesterdayDate="`date -v-1d +%Y%m%d`"
 export curDate="`date +%Y%m%d`"
 
-# delay initial prompt to make it easier for users to read
-sleep 1
-
-# get user input on what day's paper they want
-echo -e "\n What day's paper would you like to download?" 
-read -p "    Type 'today', 'yesterday', or give a date in format YYYYMMDD: " userRequestedDateInput
-
-# ask user if they want the paper to automatically open as one large combined PDF once all pages are done downloading...
-echo -e "\n Do you want to auto-open the entire paper as one PDF immediately after download has completed?"
-read -p "	 Type 'yes' or 'no': " userAutoOpenPdfInput
-
 # assign the dateToDownload variable properly.
-if [ ${userRequestedDateInput} == "today" ]; then
-	export dateToDownload="${curDate}"
-elif [ ${userRequestedDateInput} == "yesterday" ]; then
-	export dateToDownload=${yesterdayDate}
-else export dateToDownload=${userRequestedDateInput} # need to validate this input, but do that later... 
-fi 
+export dateToDownload="${curDate}"
 
 #export dayOfWeek="`date +%A`"
 export dayOfWeek="`date -j -f "%Y%m%d" "${dateToDownload}" "+%A"`"
 
 # set directories & log file name
-export wsjDir="/Users/${USER}/Desktop/WSJ"
+export wsjDir="/opt/wsj"
 export exportDir=${wsjDir}/${dateToDownload}
 export combinedPdfFileName=${exportDir}/${dateToDownload}-WSJ-full.pdf
-export logDir=${wsjDir}/downloadLogs/${dateToDownload}
+export logDir="/var/wsj/${dateToDownload}"
 export logFile="${logDir}/downloadLog_${dateToDownload}.txt"
 
 # set URL Prefix
@@ -58,8 +41,6 @@ touch ${logFile}
 
 # log the date and time this program is run (mainly useful if date chosen is NOT the current date)
 echo -e "========================== The current datetime is `date` ==================" | tee -a ${logFile}
-echo "userRequestedDateInput was: ${userRequestedDateInput}" | tee -a ${logFile}
-echo "userAutoOpenPdfInput was: ${userAutoOpenPdfInput}" | tee -a ${logFile}
 echo "STARTING DOWNLOAD FOR THE ${dateToDownload} VERSION OF THE WSJ." | tee -a ${logFile}
 
 # show the new working dir
@@ -122,9 +103,6 @@ echo "    numFilesToKeep = ${numFilesToKeep}" | tee -a ${logFile}
 
 # give user a few seconds to read the logs... 
 echo -e "\n sleeping 2 seconds ...." | tee -a ${logFile}
-sleep 2
-
-echo " done sleeping..." | tee -a ${logFile}
 echo -e "\n   removing ${numFilesToDelete} files for pages that weren't in this day's paper..." | tee -a ${logFile}
 
 # find all the files under the arbitrarily-chosen size threshold and delete them
@@ -140,21 +118,7 @@ echo -e "\n Running Automator's 'Combine PDF Pages.action' script to combine all
 echo -e "\n Removing individual pages now that all have been combined into single file..."
 rm -v ${exportDir}/WSJ*${dateToDownload}*.pdf | tee -a ${logFile}
 
-if [ ${userAutoOpenPdfInput} == "yes" ]; then
-	echo -e "\n Auto-opening the entire paper as one combined PDF for you now... " | tee -a ${logFile}
-	# auto-opens the single, combined PDF. 
-	open ${combinedPdfFileName}
-else 
-	echo -e "Not auto-opening the paper for you, but you can access it via finder here: ${combinedPdfFileName}"
-	# opens a Finder window in the exportDir folder
-	open .
-fi 
+echo -e "Not auto-opening the paper for you, but you can access it via finder here: ${combinedPdfFileName}"
 
 # stop reading comments, go read the paper!
 echo -e "\n ... all done! Enjoy today's Wall Street Journal!" | tee -a ${logFile}
-echo -e "\n ... And if you've REALLY enjoyed this tool, feel free to contribute to my crypto tip-jar :)" | tee -a ${logFile}
-echo -e "\n#########################################\nBTC: 1CVEAghHnW9dnNPjhzriSchieQyu4qjX2E" | tee -a ${logFile}
-echo -e "\nETH: 0xff7EF3e902b9cC66d886E510f52f64ACDD29e86b" | tee -a ${logFile}
-echo -e "\nLTC: LZNqM6VK8H1CcuhPCK11Mn7YtmPj9GUyBH" | tee -a ${logFile}
-echo -e "\nLTC: rfrZCjvzsYMnoSiJ1sAjnwDrRbHxj3NdmV" | tee -a ${logFile}
-echo -e "#########################################" | tee -a ${logFile}
